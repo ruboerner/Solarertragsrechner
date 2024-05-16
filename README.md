@@ -11,6 +11,12 @@ Dieses Repository enthält ein Python-Programm, das den Ertrag einer Solaranlage
 
 ## Installation
 
+Klonen Sie das Repository:
+
+```bash
+git clone https://github.com/ruboerner/Solarertragsrechner.git
+```
+
 Um die notwendigen Abhängigkeiten zu installieren, kann `pip` verwendet werden:
 
 ```bash
@@ -24,3 +30,13 @@ Nach der Installation wird folgender Befehl im Projektordner eingegeben:
 ```bash
 marimo run solarertragsrechner.py
 ```
+
+## Lizenz
+
+Dieses Projekt ist unter der MIT-Lizenz lizenziert. Siehe die [[LICENSE]] Datei für Details.
+
+## Danksagung
+
+- [marimo](https://marimo.io)
+- [pysolar](https://github.com/pingswept/pysolar)
+
