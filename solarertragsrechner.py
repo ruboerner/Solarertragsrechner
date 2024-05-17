@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.5.2"
+__generated_with = "0.6.0"
 app = marimo.App(width="medium")
 
 
@@ -10,13 +10,12 @@ def __():
 
     mo.Html(
             """
-        <link href="https://fonts.googleapis.com/css?family=Open Sans" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible" rel="stylesheet">
 
         <style>
             :root {
-                --text-font: "Roboto", cursive, sans-serif;
-                --heading-font: "Open Sans", cursive, sans-serif;
+                --text-font:    "Atkinson Hyperlegible";
+                --heading-font: "Atkinson Hyperlegible";
             }
         </style>
         """
@@ -126,10 +125,10 @@ def __(mo):
         Die Web-Anwendung basiert auf der genauen Berechnung des Sonnenstandes, die vom Python-Modul [pysolar](https://github.com/pingswept/pysolar) bereitgestellt wird. 
 
         Darüberhinaus werden die von den Solarmodulen über einen Tag umgewandelte Energie in kWh sowie die Volllaststunden angezeigt.
-        
+
         Durch Bewertung des erzielten Gesamtertrages ist es möglich, die optimale Ausrichtung der Solarmodule *interaktiv* zu ermitteln und die Energieausbeute zu maximieren. 
-        
-        
+
+
         """
     ).callout(kind="info")
     return
@@ -171,9 +170,9 @@ def __(mo):
          \sin(\gamma_P)
          \end{pmatrix}
     $$
-         
+
     Der Richtungsvektor zur Sonne kann durch ihren Azimut- und Höhenwinkel wie folgt dargestellt werden:
-       
+
     $$
     \mathbf{n}_{S} = \begin{pmatrix}
          \cos(\alpha_S) \cdot \cos(\gamma_S) \\\\
@@ -185,7 +184,7 @@ def __(mo):
     ### Berechnung des Skalarprodukts
 
     Das Skalarprodukt \(\mathbf{n}_{P} \cdot \mathbf{n}_{S}\) der beiden Vektoren wird berechnet als:
-       
+
     $$
     \mathbf{n}_{P} \cdot \mathbf{n}_{S} = (\cos(\alpha_P) \cdot \cos(\gamma_P)) \cdot (\cos(\alpha_S) \cdot \cos(\gamma_S)) + (\sin(\alpha_P) \cdot \cos(\gamma_P)) \cdot (\sin(\alpha_S) \cdot \cos(\gamma_S)) + (\sin(\gamma_P)) \cdot (\sin(\gamma_S))
     $$
@@ -283,7 +282,18 @@ def __(T, hours, integrate, np):
 
 
 @app.cell
-def __(L, T, dates, elevation, get_index_sunrise_sunset, hours, n, plt):
+def __(
+    L,
+    P,
+    T,
+    dates,
+    elevation,
+    get_index_sunrise_sunset,
+    hours,
+    n,
+    np,
+    plt,
+):
     fig, ax = plt.subplots(1, 1, figsize=(11, 4))
 
 
@@ -298,7 +308,7 @@ def __(L, T, dates, elevation, get_index_sunrise_sunset, hours, n, plt):
     ax.plot(hours, T, linewidth=3, color='green', label='Gesamtleistung')
     ax.fill_between(hours, T, color='green', alpha=0.3)
     ax.xaxis.set_major_formatter(dates.DateFormatter('%H:%M', tz="Europe/Berlin"))
-    ax.set_ylim(0, 600)
+    ax.set_ylim(0, np.sum(P))
     ax.set_xlim(hours[0], hours[-1])
     ax.grid(visible=True)
     ax.set_xlabel("Uhrzeit")
@@ -312,9 +322,9 @@ def __(L, T, dates, elevation, get_index_sunrise_sunset, hours, n, plt):
 def __(mo):
     wel = mo.md(
         """
-        
+
         Der *Gesamtertrag* $E$ wird durch Integration der *Leistung* $P$ über den Tag ermittelt:
-        
+
         $$
         E = \int_{t=t_0}^{t_1} P(t) \, \mathrm dt
         $$
@@ -326,7 +336,7 @@ def __(mo):
         $$
         V = \\frac{E}{P_N}.
         $$
-        
+
         """
     )
     return wel,
