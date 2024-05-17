@@ -26,21 +26,22 @@ def __():
 @app.cell
 def __():
     import pysolar.solar as so
-    from datetime import datetime, timedelta, timezone
-    from zoneinfo import ZoneInfo
+    # from zoneinfo import ZoneInfo
+    import pytz
+    from datetime import datetime, timedelta
     import time
     import os
-    import pytz
+    import math
     import numpy as np
     from matplotlib import pyplot as plt, dates
     from scipy import integrate
     import scienceplots
     plt.style.use(['science', 'notebook'])
     return (
-        ZoneInfo,
         dates,
         datetime,
         integrate,
+        math,
         np,
         os,
         plt,
@@ -49,12 +50,11 @@ def __():
         so,
         time,
         timedelta,
-        timezone,
     )
 
 
 @app.cell
-def __(ZoneInfo, datetime, np, so, timedelta):
+def __(datetime, math, np, pytz, so, timedelta):
     def daterange(start_date, end_date):
         delta = timedelta(minutes=5)
         while start_date < end_date:
@@ -73,7 +73,9 @@ def __(ZoneInfo, datetime, np, so, timedelta):
         day = pysolar.radiation.math.tm_yday(when)
         flux = pysolar.radiation.get_apparent_extraterrestrial_flux(day)
         optical_depth = pysolar.radiation.get_optical_depth(day)
-        air_mass_ratio = pysolar.radiation.get_air_mass_ratio(altitude_deg)
+        # air_mass_ratio = pysolar.radiation.get_air_mass_ratio(altitude_deg)
+        sin_beta = math.sin(math.radians(altitude_deg))
+        air_mass_ratio = np.sqrt((708 * sin_beta)**2 + 1417) - 708 * sin_beta
         return pysolar.radiation.math.exp(-1 * optical_depth * air_mass_ratio) * is_daytime
 
     def get_n(el, az):
@@ -84,8 +86,11 @@ def __(ZoneInfo, datetime, np, so, timedelta):
         ])
 
     def panel(year, month, day, orientation, angle, begin=4, end=22, lat=50.906923, lon=13.333424):
-        start_date = datetime(year, month, day, begin, 0, tzinfo=ZoneInfo("Europe/Berlin"))
-        end_date = datetime(year, month, day, end, 0, tzinfo=ZoneInfo("Europe/Berlin"))
+        timezone = pytz.timezone('Europe/Berlin')
+        start_date_ = datetime(year, month, day, begin, 0)
+        end_date_ = datetime(year, month, day, end, 0)
+        start_date = timezone.localize(start_date_)
+        end_date = timezone.localize(end_date_)
         azimuth = []
         elevation = []
         hours = []
@@ -293,6 +298,7 @@ def __(
     n,
     np,
     plt,
+    pytz,
 ):
     fig, ax = plt.subplots(1, 1, figsize=(11, 4))
 
@@ -307,7 +313,7 @@ def __(
 
     ax.plot(hours, T, linewidth=3, color='green', label='Gesamtleistung')
     ax.fill_between(hours, T, color='green', alpha=0.3)
-    ax.xaxis.set_major_formatter(dates.DateFormatter('%H:%M', tz="Europe/Berlin"))
+    ax.xaxis.set_major_formatter(dates.DateFormatter('%H:%M', tz=pytz.timezone("Europe/Berlin")))
     ax.set_ylim(0, np.sum(P))
     ax.set_xlim(hours[0], hours[-1])
     ax.grid(visible=True)
