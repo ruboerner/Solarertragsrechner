@@ -1,0 +1,24 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: Solarertragsrechner
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Ralph-Uwe
+    family-names: Börner
+    email: rub@geopohysik.tu-freiberg.de
+    orcid: 'https://orcid.org/0000-0002-1099-3857'
+    affiliation: TU Bergakademie Freiberg
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.11204043
+repository-code: 'https://github.com/ruboerner/Solarertragsrechner'
+abstract: >-
+  Berechnung des Ertrages einer Solaranlage unter
+  Berücksichtigung des Sonnenstandes und der Ausrichtung von
+  bis zu vier Solarmodulen
+license: MIT
