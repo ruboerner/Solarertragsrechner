@@ -27,7 +27,6 @@ def __():
 def __():
     import pysolar.solar as so
     import pysolar.radiation as pr
-    # from zoneinfo import ZoneInfo
     import pytz
     from datetime import datetime, timedelta
     import time
@@ -78,7 +77,7 @@ def __(datetime, math, np, pytz, so, timedelta):
         # air_mass_ratio = pysolar.radiation.get_air_mass_ratio(altitude_deg)
         sin_beta = math.sin(math.radians(altitude_deg))
         air_mass_ratio = np.sqrt((708 * sin_beta)**2 + 1417) - 708 * sin_beta
-        return pysolar.radiation.math.exp(-1 * optical_depth * air_mass_ratio) * is_daytime * flux
+        return flux * pysolar.radiation.math.exp(-1 * optical_depth * air_mass_ratio) * is_daytime
 
     def get_n(el, az):
         return np.array([
@@ -102,8 +101,6 @@ def __(datetime, math, np, pytz, so, timedelta):
             elevation.append(so.get_altitude(lat, lon, d))
 
         attn = np.array([get_attenuation(start_date, alt) for alt in elevation])
-        # radiation = np.array([so.radiation.get_radiation_direct(start_date, alt) for alt in elevation])
-        radiation = np.ones_like(attn)
 
         cosgamma = np.hstack(getcos(azimuth, elevation, orientation, angle))
         cosgamma = np.clip(cosgamma, 0, 1)
@@ -111,53 +108,42 @@ def __(datetime, math, np, pytz, so, timedelta):
         cosgamma[remove] = 0.0
         return cosgamma, attn, hours, elevation
 
-    def get_flux(year, month, day):
-        import pysolar
-        timezone = pytz.timezone('Europe/Berlin')
-        start_date_ = datetime(year, month, day, 0, 0)
-        start_date = timezone.localize(start_date_)
-        day = pysolar.radiation.math.tm_yday(start_date)
-        return pysolar.radiation.get_apparent_extraterrestrial_flux(day)
-
-
-    return daterange, get_attenuation, get_flux, get_n, getcos, panel
-
-
-@app.cell
-def __():
-    return
-
-
-@app.cell
-def __(np):
     def get_index_sunrise_sunset(elevation):
         el = np.array(elevation)
         first = next(x for x, val in enumerate(el) if val > 0)
         last =  next(x for x in range(np.size(el)-1, -1, -1) if el[x] > 0)
         return first, last
-    return get_index_sunrise_sunset,
+    return (
+        daterange,
+        get_attenuation,
+        get_index_sunrise_sunset,
+        get_n,
+        getcos,
+        panel,
+    )
 
 
 @app.cell
 def __(mo):
-    mo.md(
+    intro = mo.md(
         """
-        ""
-            # Optimale Ausrichtung von Solarpanels
+        # 🌤️ Optimale Ausrichtung von Solarpanels
 
-            Diese Anwendung berechnet die von bis zu vier Solarmodulen erzeugte Leistung. 
+            Diese Anwendung berechnet näherungsweise die von bis zu vier Solarmodulen erzeugte Leistung ohne Berücksichtigung von Streuung oder ortsabhängiger Verschattung. 
             Benutzer können das gewünschte Datum sowie die Azimut- und Anstellwinkel der Module eingeben. 
             Die Web-Anwendung basiert auf der genauen Berechnung des Sonnenstandes, die vom Python-Modul [pysolar](https://github.com/pingswept/pysolar) bereitgestellt wird. 
 
             Darüberhinaus werden die von den Solarmodulen über einen Tag umgewandelte Energie in kWh sowie die Volllaststunden angezeigt.
 
-            Durch Bewertung des erzielten Gesamtertrages ist es möglich, die optimale Ausrichtung der Solarmodule *interaktiv* zu ermitteln und die Energieausbeute zu maximieren. 
-
-
-            \"""
-        ).callout(kind="info
+            Durch Bewertung des erzielten Gesamtertrages ist es möglich, die optimale Ausrichtung der Solarmodule für ausgewählte Tage *interaktiv* zu ermitteln und die Energieausbeute zu maximieren.
         """
     )
+    return intro,
+
+
+@app.cell
+def __(intro):
+    intro.callout(kind="info")
     return
 
 
@@ -231,7 +217,7 @@ def __(mo):
 @app.cell
 def __(hintergrund, mo):
     mo.accordion(
-        {"Mathematischer Hintergrund": hintergrund}
+        {f"{mo.icon('hugeicons:math')} Mathematischer Hintergrund": hintergrund}
     )
     return
 
@@ -246,6 +232,23 @@ def __(mo):
 def __(date, mo):
     mo.hstack([mo.md("Datum: "), date], gap=1.0, justify="start")
     return
+
+
+@app.cell
+def __(mo):
+    coords = mo.md("{lat} {lon}").batch(
+            lat=mo.ui.text(value='50.924974', label='Breitengrad:'),
+            lon=mo.ui.text(value='13.330355', label='Längengrad:')
+        )
+    coords
+    return coords,
+
+
+@app.cell
+def __(coords):
+    lat = float(coords.value["lat"])
+    lon = float(coords.value["lon"])
+    return lat, lon
 
 
 @app.cell
@@ -273,9 +276,9 @@ def __(mo, n):
     panels = mo.ui.array(mo.md("{az} {el} <br> {power} {area} <br> {r}").batch(
         az=mo.ui.slider(0, 359, 5, label="Azimut", value=((i+1) * 60) % 360, show_value=True),
         el=mo.ui.slider(0, 90, 5, label="Anstellwinkel", value=30, show_value=True),
-        power=mo.ui.text(value='385', label='Leistung [Wp]:'),
+        power=mo.ui.text(value='385', label=r'Leistung [Wp]: $~~~~~~~~~~~~$'),
         area=mo.ui.text(value='1.86', label=r'Fläche [m$^2$]:'),
-        r=mo.ui.text(value='0.2', label='Wirkungsgrad [0...1]:')
+        r=mo.ui.text(value='0.2', label=r'Wirkungsgrad [$0\dots 1$]:')
             ) for i in range(n.value))
     mo.vstack(panels)
     return panels,
@@ -290,8 +293,8 @@ def __(n, np, panels):
 
 
 @app.cell
-def __(F, R, day, month, n, np, panel, panels, year):
-    CC, A, hours, elevation = panel(year, month, day, panels[0]["az"].value, panels[0]["el"].value)
+def __(F, R, day, lat, lon, month, n, np, panel, panels, year):
+    CC, A, hours, elevation = panel(year, month, day, panels[0]["az"].value, panels[0]["el"].value, lat=lat, lon=lon)
     L = (CC * A) * F[0] * R[0]
     L = np.expand_dims(L, axis=0)
     T = L[0]
@@ -339,7 +342,7 @@ def __(
     ax.plot(hours, T, linewidth=3, color='green', label='Gesamtleistung')
     ax.fill_between(hours, T, color='green', alpha=0.3)
     ax.xaxis.set_major_formatter(dates.DateFormatter('%H:%M', tz=pytz.timezone("Europe/Berlin")))
-    # ax.set_ylim(0, np.sum(P))
+    #ax.set_ylim(0, np.sum(P))
     ax.set_xlim(hours[0], hours[-1])
     ax.grid(visible=True)
     ax.set_xlabel("Uhrzeit")
@@ -353,7 +356,6 @@ def __(
 def __(mo):
     wel = mo.md(
         """
-
         Der *Gesamtertrag* $E$ wird durch Integration der *Leistung* $P$ über den Tag ermittelt:
 
         $$
@@ -376,7 +378,7 @@ def __(mo):
 @app.cell
 def __(mo, wel):
     mo.accordion(
-        {"Berechnung des Gesamtertrages und der Volllaststunden": wel}
+        {f"{mo.as_html(mo.icon('hugeicons:math'))}Berechnung des Gesamtertrages und der Volllaststunden": wel}
     )
     return
 
