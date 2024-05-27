@@ -86,7 +86,7 @@ def __(datetime, math, np, pytz, so, timedelta):
             np.sin(np.deg2rad(az))
         ])
 
-    def panel(year, month, day, orientation, angle, begin=4, end=22, lat=50.906923, lon=13.333424):
+    def panel(year, month, day, orientation, angle, begin=4, end=22, lat=50.924974, lon=13.330355):
         timezone = pytz.timezone('Europe/Berlin')
         start_date_ = datetime(year, month, day, begin, 0)
         end_date_ = datetime(year, month, day, end, 0)
