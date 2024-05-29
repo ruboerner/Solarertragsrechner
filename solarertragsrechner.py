@@ -1,8 +1,9 @@
 import marimo
+import locale
 
 __generated_with = "0.6.5"
 app = marimo.App(width="medium")
-
+locale.setlocale(locale.LC_NUMERIC, "de_DE")
 
 @app.cell
 def __():
@@ -129,8 +130,8 @@ def __(mo):
         """
         # 🌤️ Optimale Ausrichtung von Solarpanels
 
-            Diese Anwendung berechnet näherungsweise die von bis zu vier Solarmodulen erzeugte Leistung ohne Berücksichtigung von Streuung oder ortsabhängiger Verschattung. 
-            Benutzer können das gewünschte Datum sowie die Azimut- und Anstellwinkel der Module eingeben. 
+            Diese Anwendung berechnet näherungsweise die von bis zu vier Solarmodulen erzeugte Leistung ohne Berücksichtigung von Lichtstreuung oder ortsabhängiger Verschattung.
+            Benutzer können das gewünschte Datum sowie die Azimut- und Anstellwinkel der Module eingeben.
             Die Web-Anwendung basiert auf der genauen Berechnung des Sonnenstandes, die vom Python-Modul [pysolar](https://github.com/pingswept/pysolar) bereitgestellt wird. 
 
             Darüberhinaus werden die von den Solarmodulen über einen Tag umgewandelte Energie in kWh sowie die Volllaststunden angezeigt.
@@ -237,8 +238,8 @@ def __(date, mo):
 @app.cell
 def __(mo):
     coords = mo.md("{lat} {lon}").batch(
-            lat=mo.ui.text(value='50.924974', label='Breitengrad:'),
-            lon=mo.ui.text(value='13.330355', label='Längengrad:')
+            lat=mo.ui.text(value='50,924974', label='Breitengrad:'),
+            lon=mo.ui.text(value='13,330355', label='Längengrad:')
         )
     coords
     return coords,
@@ -246,8 +247,8 @@ def __(mo):
 
 @app.cell
 def __(coords):
-    lat = float(coords.value["lat"])
-    lon = float(coords.value["lon"])
+    lat = float(coords.value["lat"].replace(",", "."))
+    lon = float(coords.value["lon"].replace(",", "."))
     return lat, lon
 
 
@@ -261,13 +262,13 @@ def __(date):
 
 @app.cell
 def __(mo):
-    n = mo.ui.slider(1, 4, value=1)
+    n = mo.ui.slider(1, 6, value=1)
     return n,
 
 
 @app.cell
 def __(mo, n):
-    mo.hstack([mo.md(f"Anzahl der installierten Panels (1...4): "), n, mo.md(f"{n.value}")], gap=2.0, justify='start')
+    mo.hstack([mo.md(f"Anzahl der installierten Panels (1...6): "), n, mo.md(f"{n.value}")], gap=2.0, justify='start')
     return
 
 
@@ -277,8 +278,8 @@ def __(mo, n):
         az=mo.ui.slider(0, 359, 5, label="Azimut", value=((i+1) * 60) % 360, show_value=True),
         el=mo.ui.slider(0, 90, 5, label="Anstellwinkel", value=30, show_value=True),
         power=mo.ui.text(value='385', label=r'Leistung [Wp]: $~~~~~~~~~~~~$'),
-        area=mo.ui.text(value='1.86', label=r'Fläche [m$^2$]:'),
-        r=mo.ui.text(value='0.2', label=r'Wirkungsgrad [$0\dots 1$]:')
+        area=mo.ui.text(value='1,86', label=r'Fläche [m$^2$]:'),
+        r=mo.ui.text(value='0,2', label=r'Wirkungsgrad [$0\dots 1$]:')
             ) for i in range(n.value))
     mo.vstack(panels)
     return panels,
@@ -287,8 +288,8 @@ def __(mo, n):
 @app.cell
 def __(n, np, panels):
     P = np.array([panels[i].value['power'] for i in range(n.value)], dtype=float)
-    F = np.array([panels[i].value['area'] for i in range(n.value)], dtype=float)
-    R = np.array([panels[i].value['r'] for i in range(n.value)], dtype=float)
+    F = np.array([panels[i].value['area'].replace(",", ".") for i in range(n.value)], dtype=float)
+    R = np.array([panels[i].value['r'].replace(",", ".") for i in range(n.value)], dtype=float)
     return F, P, R
 
 
@@ -388,9 +389,9 @@ def __(I, P, mo, np):
     mo.md(
         f"""
         Gesamtertrag:
-        **{mo.as_html('{0:.3f}'.format(I / 3600000))} kWh**
+        **{mo.as_html('{0:.3n}'.format(I / 3600000))} kWh**
 
-        Volllaststunden: **{mo.as_html('{0:.2f}'.format(I / 3600 / np.sum(P)))} h**
+        Volllaststunden: **{mo.as_html('{0:.2n}'.format(I / 3600 / np.sum(P)))} h**
         """
     )
     return
@@ -401,7 +402,7 @@ def __(mo):
     mo.md(
         """
         <span style="font-size:0.7em;">
-        ©️ 2024 • Ralph-Uwe Börner • 
+        &copy;️ 2024 • Ralph-Uwe B&ouml;rner • 
         @ruboerner@mastodon.social
         </span>
         """
