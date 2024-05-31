@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.6.5"
+__generated_with = "0.6.13"
 app = marimo.App(width="medium")
 
 
@@ -125,6 +125,21 @@ def __(datetime, math, np, pytz, so, timedelta):
 
 @app.cell
 def __(mo):
+    def get_float_input(prompt, user_input):
+        try:
+            # Replace comma with dot
+            standardized_input = user_input.replace(',', '.')
+            # Convert to float
+            float_value = float(standardized_input)
+            return float_value
+        except ValueError:
+            with mo.redirect_stdout():
+                print("Ungültige Eingabe für " + prompt + ". Bitte geben Sie eine gültige Zahl ein.")
+    return get_float_input,
+
+
+@app.cell
+def __(mo):
     intro = mo.md(
         """
         # 🌤️ Optimale Ausrichtung von Solarpanels
@@ -245,9 +260,9 @@ def __(mo):
 
 
 @app.cell
-def __(coords):
-    lat = float(coords.value["lat"])
-    lon = float(coords.value["lon"])
+def __(coords, get_float_input):
+    lat = get_float_input("Breitengrad", coords.value["lat"])
+    lon = get_float_input("Längengrad", coords.value["lon"])
     return lat, lon
 
 
@@ -285,10 +300,10 @@ def __(mo, n):
 
 
 @app.cell
-def __(n, np, panels):
-    P = np.array([panels[i].value['power'] for i in range(n.value)], dtype=float)
-    F = np.array([panels[i].value['area'] for i in range(n.value)], dtype=float)
-    R = np.array([panels[i].value['r'] for i in range(n.value)], dtype=float)
+def __(get_float_input, n, np, panels):
+    P = np.array([get_float_input("Leistung", panels[i].value['power']) for i in range(n.value)], dtype=float)
+    F = np.array([get_float_input("Fläche", panels[i].value['area']) for i in range(n.value)], dtype=float)
+    R = np.array([get_float_input("Wirkungsgrad", panels[i].value['r']) for i in range(n.value)], dtype=float)
     return F, P, R
 
 
