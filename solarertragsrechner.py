@@ -144,7 +144,7 @@ def __(mo):
         """
         # 🌤️ Optimale Ausrichtung von Solarpanels
 
-            Diese Anwendung berechnet näherungsweise die von bis zu vier Solarmodulen erzeugte Leistung ohne Berücksichtigung von Streuung oder ortsabhängiger Verschattung. 
+            Diese Anwendung berechnet näherungsweise die von bis zu vier Solarmodulen erzeugte Leistung ohne Berücksichtigung von Lichtstreuung oder ortsabhängiger Verschattung. 
             Benutzer können das gewünschte Datum sowie die Azimut- und Anstellwinkel der Module eingeben. 
             Die Web-Anwendung basiert auf der genauen Berechnung des Sonnenstandes, die vom Python-Modul [pysolar](https://github.com/pingswept/pysolar) bereitgestellt wird. 
 
@@ -416,7 +416,7 @@ def __(mo):
     mo.md(
         """
         <span style="font-size:0.7em;">
-        ©️ 2024 • Ralph-Uwe Börner • 
+        &copy; 2024 • Ralph-Uwe B&ouml;rner • 
         @ruboerner@mastodon.social
         </span>
         """
